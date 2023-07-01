@@ -40,8 +40,8 @@ def SG_OAIS_beta(phi, pi, q0, nsamples, niter, alpha=1e-3, fixed=False):
 
 
         #update q_theta
-        new_alpha = q_theta.alpha + lr*np.mean(w2 * partial_log_alpha(q_theta.alpha, q_theta.beta, q_samples), axis=0)
-        new_beta = q_theta.beta + lr*np.mean(w2 * partial_log_beta(q_theta.alpha, q_theta.beta, q_samples), axis=0)
+        new_alpha = np.abs(q_theta.alpha + lr*np.mean(w2 * partial_log_alpha(q_theta.alpha, q_theta.beta, q_samples), axis=0))
+        new_beta = np.abs(q_theta.beta + lr*np.mean(w2 * partial_log_beta(q_theta.alpha, q_theta.beta, q_samples), axis=0))
         new_dist = BetaRV(new_alpha, new_beta)
 
         distributions.append(new_dist)
@@ -98,8 +98,8 @@ def Adam_OAIS_beta(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.9, beta2=0.
         m_hat_beta = m_beta/(1-beta1**(i+1))
         v_hat_alpha = v_alpha/(1-beta2**(i+1))
         v_hat_beta = v_beta/(1-beta2**(i+1))
-        new_alpha = q_theta.alpha + lr*m_hat_alpha/(np.sqrt(v_hat_alpha) + epsilon)
-        new_beta = q_theta.beta + lr*m_hat_beta/(np.sqrt(v_hat_beta) + epsilon)
+        new_alpha = np.abs(q_theta.alpha + lr*m_hat_alpha/(np.sqrt(v_hat_alpha) + epsilon))
+        new_beta = np.abs(q_theta.beta + lr*m_hat_beta/(np.sqrt(v_hat_beta) + epsilon))
         new_dist = BetaRV(new_alpha, new_beta)
         distributions.append(new_dist)
 
@@ -147,8 +147,8 @@ def AdaGrad_OAIS_beta(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.9, beta2
         grad_beta = np.mean(w2 * partial_log_beta(q_theta.alpha, q_theta.beta, q_samples), axis=0)
         grad_alpha_sq += grad_alpha**2
         grad_beta_sq += grad_beta**2
-        new_alpha = q_theta.alpha + lr*grad_alpha/(np.sqrt(grad_alpha_sq) + epsilon)
-        new_beta = q_theta.beta + lr*grad_beta/(np.sqrt(grad_beta_sq) + epsilon)
+        new_alpha = np.abs(q_theta.alpha + lr*grad_alpha/(np.sqrt(grad_alpha_sq) + epsilon))
+        new_beta = np.abs(q_theta.beta + lr*grad_beta/(np.sqrt(grad_beta_sq) + epsilon))
         new_dist = BetaRV(new_alpha, new_beta)
         distributions.append(new_dist)
     return np.array(results), distributions

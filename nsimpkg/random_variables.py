@@ -211,10 +211,17 @@ class LogitNormalRV:
         return "LogitNormal(" + str(self.mu) + ", " + str(self.Sigma) + ")"
 
     def mean(self, Nsamples=10000):
+        if self.mu == 0:
+            return 0.5
+        np.random.seed(0)
         return np.mean(self.sample(Nsamples))
     
     def std(self, Nsamples=10000):
-        return np.sqrt(np.var(self.sample(Nsamples)))
+        # estimate second moment using monte carlo
+        np.random.seed(0)
+        second_moment = np.mean(self.sample(Nsamples)**2)
+        return np.sqrt(second_moment - self.mean(Nsamples)**2)
+        
 
 def average_normal_dist(dist_arr):
     n = len(dist_arr)
