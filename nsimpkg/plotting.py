@@ -306,14 +306,14 @@ def plot_mse(results_list, GT, title, xlog = False, ylog=False):
     plt.title(title, fontsize=20)
     if xlog:
         plt.xscale("log")
-        plt.xlabel("Iteration number (log scale)", fontsize=14)
+        plt.xlabel("Iteration number (log scale)", fontsize=16)
     else:
-        plt.xlabel("Iteration number", fontsize=14)
+        plt.xlabel("Iteration number", fontsize=16)
     if ylog:
         plt.yscale("log")
-        plt.ylabel("MSE (log scale)", fontsize=14)
+        plt.ylabel("MSE (log scale)", fontsize=16)
     else:
-        plt.ylabel("MSE", fontsize=14)
+        plt.ylabel("MSE", fontsize=16)
     # increase tick label size
-    plt.tick_params(axis='both', which='major', labelsize=12)
+    plt.tick_params(axis='both', which='major', labelsize=14)
     plt.tight_layout()
