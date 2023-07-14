@@ -132,7 +132,7 @@ def Adam_OAIS(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.9, beta2=0.999, 
 
     return np.array(results), distributions
 
-def AdaGrad_OAIS(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.9, beta2=0.999, proj_eps=1e-6, proj_set=1e-3):
+def AdaGrad_OAIS(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.999, proj_eps=1e-6, proj_set=1e-3):
     """
     Implement the ADAM-OAIS algorithm.
 
@@ -155,6 +155,8 @@ def AdaGrad_OAIS(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.9, beta2=0.99
     distributions = [q0]
     G_m = [np.zeros(q0.mu.shape)]
     G_Sarr = [np.zeros(q0.Sigma.shape)]
+    h_mean_arr = [np.zeros(q0.Sigma.shape)]
+    h_var_arr = [np.zeros(q0.Sigma.shape)]
     for i in tqdm(range(niter), leave=True, position=0):
         q_theta = distributions[-1]
         lr = alpha
@@ -174,9 +176,13 @@ def AdaGrad_OAIS(phi, pi, q0, nsamples, niter, alpha=1e-3, beta1=0.9, beta2=0.99
         G_m.append(G_m[-1] + update_m**2)
         G_Sarr.append(G_Sarr[-1] + update_S**2)
 
-        new_m = q_theta.m - lr*(update_m/np.sqrt(G_m[-1])+1e-8)
+        h_k_mean = beta1 * h_mean_arr[-1] + (1-beta1) * update_m
+        h_mean_arr.append(h_k_mean)
+        h_k_var = beta1 * h_var_arr[-1] + (1-beta1) * (update_S)**2
+        h_var_arr.append(h_k_var)
 
-        new_S = project_pd(q_theta.S - lr*(update_S/np.sqrt(G_Sarr[-1])+1e-8), eps=proj_eps, set_val=proj_set)
+        new_m = q_theta.m - lr*(h_k_mean/np.sqrt(G_m[-1]+1e-8))
+        new_S = project_pd(q_theta.S - lr*(h_k_var/np.sqrt(G_Sarr[-1]+1e-8)), eps=proj_eps, set_val=proj_set)
 
         new_dist = NormalRV(new_m, new_S, natural=True)
         distributions.append(new_dist)

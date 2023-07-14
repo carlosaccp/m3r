@@ -3,7 +3,7 @@ import numpy as np
 from nsimpkg.random_variables import average_normal_dist, BetaRV
 from nsimpkg.mcsim import rho
 
-def plotter(distributions, pi, title, mix=False, alpha=0.2):
+def plotter(distributions, pi, title, mix=False, alpha=0.2, red_lines=True):
 
     Niter = len(distributions[0])
     distributions_t = np.array(distributions).T
@@ -21,8 +21,9 @@ def plotter(distributions, pi, title, mix=False, alpha=0.2):
             axs[0].plot(mu_1, color="black", alpha=alpha)
             axs[1].plot(mu_2, color="black", alpha=alpha)
     if mix:
-        axs[0].hlines(pi.avg_dist.mu[0], 0, Niter, label="Average value", color="red", linestyle="--", linewidth=2)
-        axs[1].hlines(pi.avg_dist.mu[1], 0, Niter, label="Average value", color="red", linestyle="--", linewidth=2)
+        if red_lines:
+            axs[0].hlines(pi.avg_dist.mu[0], 0, Niter, label="Average value", color="red", linestyle="--", linewidth=2)
+            axs[1].hlines(pi.avg_dist.mu[1], 0, Niter, label="Average value", color="red", linestyle="--", linewidth=2)
         true = pi.avg_dist.Sigma
     else:
         axs[0].hlines(pi.mu[0], 0, Niter, label="True value", color="red", linestyle="--")
@@ -30,11 +31,10 @@ def plotter(distributions, pi, title, mix=False, alpha=0.2):
         true = pi.Sigma
     axs[0].set_xlabel("Iteration number (log scale)")
     axs[0].set_ylabel("Numerical value")
-    axs[0].set_title("$(\mu_k)_1$", fontsize=14)
+    axs[0].set_title("$(\mu_k)_1$", fontsize=16)
     axs[0].set_xscale("log")
     axs[1].set_xscale("log")
-    axs[1].set_title("$(\mu_k)_2$", fontsize=14)
-    axs[0].legend()
+    axs[1].set_title("$(\mu_k)_2$", fontsize=16)
 
     true00 = true[0][0]
     true11 = true[1][1]
@@ -66,21 +66,69 @@ def plotter(distributions, pi, title, mix=False, alpha=0.2):
         axs[3].plot(sigma10, color="black", alpha=alpha, linewidth=1)
         axs[4].plot(sigma01, color="black", alpha=alpha, linewidth=1)
         axs[5].plot(sigma11, color="black", alpha=alpha, linewidth=1)
-
-    axs[2].hlines(y=true00, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
-    axs[2].set_title('$(\Sigma_k)_{1,1}$', fontsize=14)
-    axs[3].hlines(y=true01, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
-    axs[3].set_title('$(\Sigma_k)_{1,2}$', fontsize=14)
-    axs[4].hlines(y=true10, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
-    axs[4].set_title('$(\Sigma_k)_{2,1}$', fontsize=14)
-    axs[5].hlines(y=true11, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
-    axs[5].set_title('$(\Sigma_k)_{2,2}$', fontsize=14)
+    
+    if red_lines:
+        axs[2].hlines(y=true00, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
+        axs[3].hlines(y=true01, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
+        axs[4].hlines(y=true10, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
+        axs[5].hlines(y=true11, color='r', linestyle='--', xmin=0, xmax=Niter, label="True value" if not mix else "Average value")
+    axs[2].set_title('$(\Sigma_k)_{1,1}$', fontsize=16)
+    axs[3].set_title('$(\Sigma_k)_{1,2}$', fontsize=16)
+    axs[4].set_title('$(\Sigma_k)_{2,1}$', fontsize=16)
+    axs[5].set_title('$(\Sigma_k)_{2,2}$', fontsize=16)
     for ax in axs.flat:
         ax.set_xscale('log')
         # turn grid on
+    axs[0].set_xlabel("Iteration number (log scale)", fontsize=14)
+    axs[0].set_ylabel("Numerical value", fontsize=14)
+    axs[0].legend(fontsize=11.5)
+    # make common legend for all subplots
+    fig.suptitle(title, fontsize=20)
+    fig.tight_layout()
+
+def plotter_means(distributions, pi, title, mix=False, alpha=0.2):
+
+    Niter = len(distributions[0])
+    distributions_t = np.array(distributions).T
+    average_distributions = [average_normal_dist(d) for d in distributions_t]
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    axs[0].plot([i for i in range(1, Niter+1)], [d.mu[0] for d in average_distributions], color="black", label="Average over runs", linewidth=4)
+    axs[1].plot([i for i in range(1, Niter+1)], [d.mu[1] for d in average_distributions], color="black", label="Average over runs", linewidth=4)
+    for i, distribution_list in enumerate(distributions):
+        if i == 0:
+            axs[0].plot([i for i in range(1, Niter+1)] ,[d.mu[0] for d in distribution_list], color="black", alpha=alpha, label="Single run", linewidth=2)
+            axs[1].plot([i for i in range(1, Niter+1)] ,[d.mu[1] for d in distribution_list], color="black", alpha=alpha, label="Single run", linewidth=2)
+        else:
+            mu_1 = [d.mu[0] for d in distribution_list]
+            mu_2 = [d.mu[1] for d in distribution_list]
+            axs[0].plot([i for i in range(1, Niter+1)] ,mu_1, color="black", alpha=alpha)
+            axs[1].plot([i for i in range(1, Niter+1)] ,mu_2, color="black", alpha=alpha)
+    if mix:
+        axs[0].hlines(pi.avg_dist.mu[0], 0, Niter, label="Average value", color="blue", linestyle="--", linewidth=4)
+        axs[1].hlines(pi.avg_dist.mu[1], 0, Niter, label="Average value", color="blue", linestyle="--", linewidth=4)
+        true = pi.avg_dist.Sigma
+    else:
+        axs[0].hlines(pi.mu[0], 0, Niter+10000, label="True value", color="blue", linestyle="--", linewidth=3)
+        axs[1].hlines(pi.mu[1], 0, Niter+10000, label="True value", color="blue", linestyle="--", linewidth=3)
+        true = pi.Sigma
     axs[0].set_xlabel("Iteration number (log scale)")
     axs[0].set_ylabel("Numerical value")
-    axs[0].legend()
+    axs[0].set_title("$(\mu_k)_1$", fontsize=18)
+    axs[0].set_xscale("log")
+    axs[1].set_xscale("log")
+    axs[1].set_title("$(\mu_k)_2$", fontsize=18)
+    for ax in axs.flat:
+        ax.set_xscale('log')
+        # turn grid on
+    axs[0].set_xlabel("Iteration number (log scale)", fontsize=16)
+    axs[0].set_ylabel("Numerical value", fontsize=16)
+    axs[0].legend(fontsize=14)
+    # increase tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=12)
+    axs[1].tick_params(axis='both', which='major', labelsize=12)
+    # set xlim
+    axs[0].set_xlim(1, Niter+10000)
+    axs[1].set_xlim(1, Niter+10000)
     # make common legend for all subplots
     fig.suptitle(title, fontsize=20)
     fig.tight_layout()
@@ -250,18 +298,22 @@ def plot_iters_beta(experiment_distributions, pi, title):
     plt.tight_layout()
 
 def plot_mse(results_list, GT, title, xlog = False, ylog=False):
+    Niter = len(results_list[0])
     results = np.array(results_list)
     mses = np.mean((results-GT)**2, axis=0)
-    plt.plot(mses, color="black", linewidth=1)
+    plt.figure(figsize=(8, 6))
+    plt.plot([i for i in range(1, Niter+1)], mses, color="black", linewidth=1)
     plt.title(title, fontsize=20)
     if xlog:
         plt.xscale("log")
-        plt.xlabel("Iteration number (log scale)")
+        plt.xlabel("Iteration number (log scale)", fontsize=14)
     else:
-        plt.xlabel("Iteration number")
+        plt.xlabel("Iteration number", fontsize=14)
     if ylog:
         plt.yscale("log")
-        plt.ylabel("MSE (log scale)")
+        plt.ylabel("MSE (log scale)", fontsize=14)
     else:
-        plt.ylabel("MSE")
+        plt.ylabel("MSE", fontsize=14)
+    # increase tick label size
+    plt.tick_params(axis='both', which='major', labelsize=12)
     plt.tight_layout()
